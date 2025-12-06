@@ -4,7 +4,12 @@ import { usePathname } from 'next/navigation';
 import { Fragment, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Sidebar from '@/app/components/Sidebar';
-import type { SectionDto, SubSectionDto } from '@/sanity/lib/definitions';
+import type {
+  SectionDto,
+  SubSectionDto,
+  SubSectionItemPageDto,
+  SubSectionItemPatternDto,
+} from '@/sanity/lib/definitions';
 import PatternTitle from '@/app/components/PatternTitle';
 
 type PatternsSidebarProps = {
@@ -36,12 +41,52 @@ const PatternsSidebarContents = ({ sections }: PatternsSidebarProps) => {
           {section?.subSections?.some(subSection =>
             subSection.items?.some(item => item._type === 'page'),
           ) ? (
-            <Link
-              href={`/${section.subSections.find(subSection => subSection.items?.some(item => item._type === 'page'))?.items?.find(item => item._type === 'page')?.slug}`}
-              className="uppercase text-xs hover:underline py-1"
-            >
-              {section.name}
-            </Link>
+            <div className="flex flex-col text-sm">
+              <Link
+                href={`/${section.subSections.find(subSection => subSection.items?.some(item => item._type === 'page'))?.items?.find(item => item._type === 'page')?.slug}`}
+                className="uppercase text-xs hover:underline py-1"
+              >
+                {section.name}
+              </Link>
+              {section?.subSections?.map((subSection: SubSectionDto) =>
+                subSection.items?.map(
+                  (item: SubSectionItemPageDto | SubSectionItemPatternDto, i) => (
+                    <Fragment key={item._id}>
+                      {item._type === 'page' && (
+                        <Link href={`/${item.slug}`} className="flex group py-1">
+                          <PatternTitle
+                            minimal
+                            number={String.fromCharCode(97 + i)}
+                            name={item.name}
+                          />
+                        </Link>
+                      )}
+                      {item._type === 'pattern' && (
+                        <>
+                          {pathname.includes(item.slug) ? (
+                            <div className="flex font-bold py-1">
+                              <PatternTitle
+                                minimal
+                                number={String.fromCharCode(97 + i)}
+                                name={item.name}
+                              />
+                            </div>
+                          ) : (
+                            <Link href={`/patterns/${item.slug}`} className="flex group py-1">
+                              <PatternTitle
+                                minimal
+                                number={String.fromCharCode(97 + i)}
+                                name={item.name}
+                              />
+                            </Link>
+                          )}
+                        </>
+                      )}
+                    </Fragment>
+                  ),
+                ),
+              )}
+            </div>
           ) : (
             <Link href={`/#${section.name}`} className="uppercase text-xs hover:underline py-1">
               {section.name}
